@@ -1,0 +1,1188 @@
+<%@ page language="java" pageEncoding="UTF-8"
+	contentType="text/html; charset=UTF-8"%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+	<head>
+		<title>呼叫话单管理</title>
+		<%@ include file="/commons/taglibs.jsp"%>
+		<%@ include file="/commons/meta.jsp"%>
+
+		<link rel="stylesheet" type="text/css"
+			href="${ctxPath}/styles/thickbox.css" />
+		<link rel="stylesheet" type="text/css"
+			href="${ctxPath}/styles/mainframe.css" />
+
+		<script src="${ctxPath}/scripts/jquery.event.drag-2.0.min.js">
+</script>
+		<script src="${ctxPath}/scripts/jquery.event.drop-2.0.min.js">
+</script>
+		<script src="${ctxPath}/scripts/jquery.json-2.3.min.js">
+</script>
+
+
+		<script src="${ctxPath}/scripts/slick/slick.core.js">
+</script>
+		<script
+			src="${ctxPath}/scripts/slick/plugins/slick.cellrangeselector.js">
+</script>
+		<script
+			src="${ctxPath}/scripts/slick/plugins/slick.cellselectionmodel.js">
+</script>
+		<script
+			src="${ctxPath}/scripts/slick/plugins/slick.rowselectionmodel.js">
+</script>
+		<script src="${ctxPath}/scripts/slick/plugins/slick.rowmovemanager.js">
+</script>
+		<script src="${ctxPath}/scripts/slick/slick.formatters.js">
+</script>
+		<script src="${ctxPath}/scripts/slick/slick.editors.js">
+</script>
+		<script src="${ctxPath}/scripts/slick/slick.grid.js">
+</script>
+
+		<script src="${ctxPath}/scripts/recordplayer.js">
+</script>
+
+		<link rel="stylesheet" type="text/css"
+			href="${ctxPath}/styles/slick.grid.css" />
+
+		<link rel="stylesheet" type="text/css"
+			href="${ctxPath}/styles/examples.css" />
+
+		<link rel="stylesheet" type="text/css"
+			href="${ctxPath}/styles/smoothness/jquery-ui-1.8.16.custom.css" />
+
+		<style type="text/css">
+.cell-title {
+	font-weight: bold;
+}
+
+.cell-effort-driven {
+	text-align: center;
+}
+
+.hidden col {
+	display: none;
+}
+
+.cell-reorder {
+	cursor: move;
+	background: url("../images/drag-handle.png") no-repeat center center;
+}
+
+.cell-selection {
+	border-right-color: silver;
+	border-right-style: solid;
+	background: #f5f5f5;
+	color: gray;
+	text-align: right;
+	font-size: 10px;
+}
+
+.slick-row.selected .cell-selection {
+	background-color: transparent;
+	/* show default selected row background */
+}
+
+.recycle-bin {
+	width: 120px;
+	border: 1px solid gray;
+	background: beige;
+	padding: 4px;
+	font-size: 12pt;
+	font-weight: bold;
+	color: black;
+	text-align: center;
+	-moz-border-radius: 10px;
+}
+
+.red {
+	background: red;
+}
+
+.bold {
+	font-weight: bold;
+}
+
+.table>thead * {
+	font-size: 11pt;
+}
+
+.table>tbody td {
+	font-size: 10.5pt;
+}
+
+tr.over td {
+	background: #D6E8F8;
+	font-weight: bold;
+}
+
+.ischecked td {
+	background: #74C69B;
+	font-weight: bold;
+}
+</style>
+
+		<!-- link-js -->
+		<script src="${ctxPath}/scripts/thickbox.js">
+</script>
+		<script language="javascript">
+$(document).ready( function() {
+			addValidate();
+    
+		    $('#startstartTime').datepicker({
+		        changeMonth: true,
+		        changeYear: true,
+		        
+		        time24h: true,
+		        showTime: true
+		    });
+		    
+		    $('#endstartTime').datepicker({
+		        changeMonth: true,
+		        changeYear: true,
+		        
+		        time24h: true,
+		        showTime: true
+		    });
+		    
+		    if(${callTicketsJdbcQuery == null}){
+		    	var today=getNowFormatDate();
+		    	$('#startstartTime').val(today);
+		    	$('#endstartTime').val(today);
+		    }
+		    else
+		    {
+		    	if(${callTicketsJdbcQuery.ischecked})
+	    		{
+	    			$("#ischecked").attr("checked", true);
+	    		}
+		    	if(${callTicketsJdbcQuery.istypeone})
+	    		{
+	    			$("#istypeone").attr("checked", true);
+	    		}
+		    	if(${callTicketsJdbcQuery.istypetwo})
+	    		{
+	    			$("#istypetwo").attr("checked", true);
+	    		}
+		    }
+		    
+		});
+		
+var se, m = 0, h = 0, s = 0, ss = 1, flag = false;
+function second() {
+
+	if ((ss % 100) == 0) {
+		s += 1;
+		ss = 1;
+	}
+	if (s > 0 && (s % 60) == 0) {
+		m += 1;
+		s = 0;
+	}
+	if (m > 0 && (m % 60) == 0) {
+		h += 1;
+		m = 0;
+	}
+	t = m + "分" + s + "秒" + ss + "毫秒";
+	document.getElementById("showTime").value = t;
+	ss += 1;
+
+}
+
+function startclock() {
+
+	if (!flag) {
+		clearInterval(se);
+		se = setInterval("second()", 1);
+		flag = !flag;
+		$("#startTiming").val("结束");
+	} else {
+		clearInterval(se);
+		ss = 1;
+		m = h = s = 0;
+		flag = !flag;
+		$("#startTiming").val("开始");
+	}
+} //这句已经过更新
+function pauseclock() {
+	clearInterval(se);
+}
+function stopclock() {
+	clearInterval(se);
+	ss = 1;
+	m = h = s = 0;
+}
+
+function zip() {
+	
+	
+	document.forms[0].action = "${ctxPath}/callticket/zipRecord.do";
+	document.forms[0].submit();
+	document.forms[0].action = "${ctxPath}/callticket/getCallTicketListForm.do";
+}
+function writerassessment(){	
+		if($("#ticketid").val()=="")  return;
+		alert(1);
+ 		var jsonuserinfo1 = $.toJSON($('#form1').serializeObject());     
+        //jsonuserinfo=$.toJSON({"ticketid":"1","showTime":"0分0秒","reviewer":"dop"})
+        
+        jsonuserinfo = eval( "(" + jsonuserinfo1 + ")" );
+        
+        //$("#showtime").val()
+        
+        var value=$("#operatorName1").val()+","+jsonuserinfo.answer+",00:"+s+":00,"+jsonuserinfo.checknumber+","+jsonuserinfo.numbertype+","+jsonuserinfo.dealproblem+","+jsonuserinfo.serviceterms+","+jsonuserinfo.isbad;
+        alert(value);
+        cl(value);
+        jQuery.ajax( {     
+          type : 'POST',     
+          contentType : 'application/json',     
+          url : '${ctxPath}/callticket/addAjaxView.do',     
+          data : jsonuserinfo1,     
+          dataType : 'json',     
+          success : function(res) {   
+        	  		alert(value);
+                  data[currTicket].result=value;  
+                  grid.setData(data);
+			grid.render();
+          },     
+          error : function(res) {     
+            alert("error")     
+          }     
+        });  
+		 
+}
+
+function removeassessment()
+{
+	if($("#ticketid").val()!=""){
+		deleteUrl="${ctxPath}/callticket/deleteReview/"+$("#ticketid").val()+".do";
+		if (confirm('确认清除评估吗?'))
+		{
+			
+			jQuery.ajax( {     
+	          type : 'get',
+	          url : deleteUrl,    
+	          dataType : 'json',
+	          success : function(res) {
+	                   getReview(currTicket,false);  
+	                   data[currTicket].result="";
+	                   grid.setData(data);
+					   grid.render();
+	          }, 
+	          error : function(data) {     
+	            	getReview(currTicket,false);  
+	          }     
+	        });
+		}
+		
+		
+	}
+	
+}
+
+function updateTicketOperator(){
+		if($("#operatorName1").val()!="-1"&&currTicket!=-1){
+		deleteUrl="${ctxPath}/callticket/updateTicketOperator/"+$("#operatorName1").val()+"/"+data[currTicket].sequenceNumber+".do";
+		data[currTicket].operatorName=$("#operatorName1").val();
+		if (confirm('确认修改话单吗?'))
+		{
+			jQuery.ajax( {     
+	          type : 'get',
+	          url : deleteUrl,    
+	          dataType : 'json',
+	          success : function(res) {
+				
+					   //data[currTicket].operatorName=$("#operatorName1").val();
+	                   //cl(data[currTicket].operatorName);
+	                   grid.setData(data);
+					   grid.render();
+	                   getReview(currTicket,false);
+	                   
+	          }, 
+	          error : function(data) {     
+	            	getReview(selectTickets[0],false);   
+	          }     
+	        });
+		}
+		
+		
+	}
+}
+
+function updateSelectTicketOperator(){
+	if(selectTickets==null||selectTickets.length<1){
+		return;
+	}
+	ticketidArr="";
+	for (var i = 0; i <selectTickets.length; i++) {
+		data[selectTickets[i]].operatorName=$("#operatorName1").val();
+	    ticketidArr+=  data[selectTickets[i]].sequenceNumber;	
+	    if(ticketidArr!=selectTickets.length-1){
+	    	 ticketidArr+=",";
+	    }
+	}
+	cl(ticketidArr);
+	if($("#operatorName1").val()!="-1"){
+		deleteUrl="${ctxPath}/callticket/updateTicketOperator/"+$("#operatorName1").val()+"/"+ticketidArr+".do";
+		if (confirm('确认修改话单吗?'))
+		{
+			jQuery.ajax( {     
+	          type : 'get',
+	          url : deleteUrl,    
+	          dataType : 'json',
+	          success : function(res) {
+				
+					   //data[currTicket].operatorName=$("#operatorName1").val();
+	                   //cl(data[currTicket].operatorName);
+	                   grid.setData(data);
+					   grid.render();
+	                   getReview(selectTickets[0],false);
+	                   
+	          }, 
+	          error : function(data) {     
+	            	getReview(selectTickets[0],false);   
+	          }     
+	        });
+		}
+		
+		
+	}
+}
+
+function selectAll(){
+	if(data!=null&&data.length>0){
+		var arrData=new Array();
+		for(i=0;i<data.length;i++){
+			
+			arrData.push(i);
+		}
+		grid.setSelectedRows(arrData);
+	}
+	
+}
+
+/*播放器状态改变事件*/
+function OnDSPlayStateChangeEvt(NewState) {
+	if (isPlayAll) {
+		// 自动播放
+		//alert(NewState);
+		//判断是否 有录音文件
+		
+		if (NewState == 8 || NewState == 10) {
+			if (playIndex < playList.length-1) {
+				playIndex++;
+				//alert(playIndex);
+				playrecord(playList[playIndex][1],playList[playIndex][0]);
+		   		//getReview(playList[playIndex][0],true);
+				//$("input[name='song'][value=" + playList[playIndex] + "]")
+						//.dblclick();
+				
+			}
+			else if(playIndex == playList.length-1){
+				getReview(playList[playIndex+1][0],true);
+			}
+			else {
+				showPlayer("divPlayer", "");
+			}
+		}
+
+
+
+	} else {
+		// 单选播放
+		
+		if (preState==9&&NewState == 10) {
+			// 
+				
+				$("input[name='song'][value=" + currPlaySong + "]").parent().parent().removeClass("over");
+				$("input[name='song'][value=" + currPlaySong + "]").parent().parent().addClass("nofile");
+
+		}
+		if (NewState == 8 || NewState == 10) {
+			showPlayer("divPlayer", "");
+		}
+	}
+	if (NewState==1) {
+			//Stop();
+			//playList = new Array();
+		   	//playIndex=0;
+			 
+				//$("input[name='song'][value=" + playList[playIndex] + "]").parent().parent().removeClass("over");
+				//$("input[name='song'][value=" + playList[playIndex] + "]").parent().parent().addClass("nofile");
+
+	}
+	preState=NewState;
+}
+</script>
+	</head>
+
+	<body>
+		<h2 class="title">
+			呼叫话单管理
+		</h2>
+
+		<div class="content-container">
+			<input type="button" id="zip" onclick="zip()" value="录音归档">
+			<table>
+				<tr>
+					<td width="70%" valign="top" align="left">
+						<div id="divPlayer"></div>
+						<div id="myGrid" style="width: 750px; height: 400px;"></div>
+					</td>
+					<td valign="top" align="left">
+						<form id="form"
+							action="${ctxPath}/callticket/getCallTicketListFormAjax.do"
+							method="post">
+
+							<fieldset id="personal">
+								<legend>
+									查询条件
+								</legend>
+								<table class="searchtable">
+									<tr>
+										<td width="50%"
+											style="text-align: left; padding-left: 15px; border: 0px none;"
+											valign="top">
+											<label for="operatorName">
+												操作员&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:
+											</label>
+											<input id="operatorName" name="operatorName" maxlength="50"
+												value="${callTicketsJdbcQuery.operatorName}" />
+											<br />
+											<label for="startTime">
+												开始时间 :
+											</label>
+											<input id="startstartTime" name="startstartTime"
+												value="${callTicketsJdbcQuery.startstartTime}" />
+											<br />
+											<label for="stopTime">
+												结束时间 :
+											</label>
+											<input id="endstartTime" name="endstartTime" maxlength="50"
+												value="${callTicketsJdbcQuery.endstartTime}" />
+											
+											<br />
+											<input id="searchButton" type="submit" value="查询"
+												width="150px" />
+											<input id="resetButton" type="button"
+												onclick="clearForm(document.forms[0])" value="重置"
+												width="150px" />
+
+										</td>
+										<td
+											style="text-align: left; padding-left: 15px; border: 0px none;"
+											valign="top">
+											<label for="desk">
+												坐席号&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:
+											</label>
+											<input id="desk" name="desk" maxlength="50"
+												value="${callTicketsJdbcQuery.desk}" />
+											<br />
+											<label for="callingNumber">
+												主叫号码 :
+											</label>
+											<input id="callingNumber" name="callingNumber" maxlength="50"
+												value="${callTicketsJdbcQuery.callingNumber}" />
+											<br />
+											<label for="calledNumber">
+												被叫号码 :
+											</label>
+											<input id="calledNumber" name="calledNumber" maxlength="50"
+												value="${callTicketsJdbcQuery.calledNumber}" />
+											<br />
+											<input type="checkbox" id="ischecked" name="ischecked" />
+											只显示已评估录音
+											<br />
+											<input type="checkbox" id="istypeone" name="istypeone" />
+											显示重要1
+											<input type="checkbox" id="istypetwo" name="istypetwo" />
+											显示重要2
+
+										</td>
+									</tr>
+								</table>
+							</fieldset>
+						</form>
+
+						<div style="">
+
+
+						</div>
+						<form id="form1" action="${ctxPath}/callticket/addView.do"
+							method="post">
+							<fieldset id="personal">
+								<legend>
+									评审
+									<input name="ticketid" type="hidden" value="${review.ticketid}"
+										id="ticketid" />
+								</legend>
+								<table id="ps">
+
+									<tr>
+
+										<td align="right" >
+
+											<input type="button" onclick="selectAll()" value="全选">
+										</td>
+										<td align="left" >
+											<input type="button" onclick="playSelect()" value="播放选中">
+											<input type="button" onclick="Stop()" id="stopPlay" value="停止播放">
+										</td>
+									</tr>
+									<tr>
+										<td width="30%">
+											<label for="showTime">
+												秒表 :
+											</label>
+										</td>
+										<td>
+
+											<input name="showTime" style="color: #ff0000; width: 200px;"
+												id="showTime" type="text" value="0分0秒">
+											<input id="startTiming" type="button" value="开始"
+												onclick="startclock()">
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<label for="type">
+												工号 :
+											</label>
+										</td>
+										<td>
+
+											<select id="operatorName1">
+												<option value="-1">
+													--未选择--
+												</option>
+												<c:forEach items="${operatorList}" var="operatorList">
+													<option value="${operatorList.account}">
+														${operatorList.account}
+													</option>
+												</c:forEach>
+											</select>
+											<input id="updateTicket" type="button" value="修改工号"
+																							onclick="updateTicketOperator()">
+																							
+											<input id="updateSelectTicket" type="button" value="批量修改工号"
+																							onclick="updateSelectTicketOperator()">																				
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<label for="type">
+												类型 :
+											</label>
+										</td>
+										<td>
+											<input type="radio" name="type" value="0" checked="checked">
+											普通
+											</input>
+											<input type="radio" name="type" value="1">
+											重要1
+											</input>
+											<input type="radio" name="type" value="2">
+											重要2
+											</input>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<label for="answer">
+												应答 :
+											</label>
+										</td>
+										<td>
+											<input type="radio" name="answer" value="0" checked="checked">
+											按时
+											</input>
+											<input type="radio" name="answer" value="1">
+											超时
+											</input>
+										</td>
+									</tr>
+									<tr>
+										<td width="30%">
+											<label for="operatorName">
+												号码类型 :
+											</label>
+										</td>
+										<td>
+											<input type="radio" name="numbertype" value="0"
+												checked="checked">
+											未知
+											</input>
+											<input type="radio" name="numbertype" value="1">
+											基本
+											</input>
+											<input type="radio" name="numbertype" value="2">
+											非基本
+											</input>
+										</td>
+									</tr>
+
+									<tr>
+										<td>
+											<label for="checknumber">
+												查号处理时长 :
+											</label>
+										</td>
+										<td>
+											<input type="radio" name="checknumber" value="0"
+												checked="checked">
+											未超时
+											</input>
+											<input type="radio" name="checknumber" value="1">
+											大超时
+											</input>
+											<input type="radio" name="checknumber" value="2">
+											小超时
+											</input>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<label for="dealproblem">
+												处理问题 :
+											</label>
+										</td>
+										<td>
+											<input type="radio" name="dealproblem" value="0"
+												checked="checked">
+											正常
+											</input>
+											<input type="radio" name="dealproblem" value="1">
+											好
+											</input>
+											<input type="radio" name="dealproblem" value="2">
+											坏
+											</input>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<label for="serviceterms">
+												服务用语 :
+											</label>
+										</td>
+										<td>
+											<input type="radio" name="serviceterms" value="0"
+												checked="checked">
+											正常
+											</input>
+											<input type="radio" name="serviceterms" value="1">
+											好
+											</input>
+											<input type="radio" name="serviceterms" value="2">
+											坏
+											</input>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<label for="isbad">
+												差错 :
+											</label>
+										</td>
+										<td>
+											<input type="radio" name="isbad" value="0" checked="checked">
+											无
+											</input>
+											<input type="radio" name="isbad" value="1">
+											有
+											</input>
+										</td>
+									</tr>
+								</table>
+								<input id="reviewer" name="reviewer" type="hidden"
+									value="${sessionScope.user.account}" />
+							<div align="center">
+								<input  type="button" value="写入评估" onclick="writerassessment()"/>
+								<input  type="button" value="清除评估" onclick="removeassessment()" />
+							</div>
+							</fieldset>
+						</form>
+						
+					</td>
+				</tr>
+			</table>
+
+		</div>
+<script>
+
+var grid;
+var data = [];
+
+// 录音播放变量
+var recordPath = '${ctxPath}/${recordPath}'
+var isPlayAll = false; // 是否播放全部
+var isAutoPlay = false; // 是否自动全部
+var isPlaying = false; // 是否正在播放
+var playIndex = -1; // 录音列表游标 
+var playList = new Array();// 录音列表
+//var currPlaySong = -1; // 当前录音
+
+var currTicket = -1//当前话单
+var preState = 0;//播放器状态
+var selectTickets;// 选中区域
+
+
+
+var columns = [ {
+	id : "status",
+	name : "状态",
+	field : "status",
+	width : 20,
+	cannotTriggerInsert : true,
+	formatter : Slick.Formatters.Recordmark
+},
+
+{
+	id : "sequenceNumber",
+	name : "编号",
+	field : "sequenceNumber",
+	width : 20,
+	cssClass : "cell-title",
+	sortable : true
+}, {
+	id : "operatorDesk",
+	name : "坐席号",
+	field : "operatorDesk",
+	width : 15,
+	cssClass : "cell-title",
+	sortable : true
+}, {
+	id : "operatorName",
+	name : "操作员",
+	field : "operatorName",
+	width : 15,
+	cssClass : "cell-title",
+	sortable : true
+}, {
+	id : "callType",
+	name : "类型",
+	field : "callType",
+	width : 30,
+	cssClass : "cell-title",
+	sortable : true
+}, {
+	id : "callingNumber",
+	name : "主叫号码",
+	field : "callingNumber",
+	width : 30,
+	cssClass : "cell-title",
+	sortable : true
+}, {
+	id : "calledNumber",
+	name : "被叫号码",
+	field : "calledNumber",
+	width : 30,
+	cssClass : "cell-title",
+	sortable : true
+}, {
+	id : "startTime",
+	name : "开始时间",
+	field : "startTime",
+	width : 30,
+	cssClass : "cell-title",
+	sortable : true
+}, {
+	id : "answerLength",
+	name : "应答时长",
+	field : "answerLength",
+	width : 30,
+	cssClass : "cell-title",
+	sortable : true
+}, {
+	id : "establishTime",
+	name : "通话时间",
+	field : "establishTime",
+	width : 30,
+	cssClass : "cell-title",
+	sortable : true
+}, {
+	id : "stopTime",
+	name : "结束时间",
+	field : "stopTime",
+	width : 30,
+	cssClass : "cell-title",
+	sortable : true
+}, {
+	id : "result",
+	name : "评估结果",
+	field : "result",
+	width : 30,
+	cssClass : "cell-title",
+	formatter : Slick.Formatters.Resultmark
+} ];
+
+var options = {
+
+	enableAddRow : true,
+	enableRowReordering : false,
+	enableCellNavigation : true,
+	forceFitColumns : true,
+	multiColumnSort : true
+};
+
+function requiredFieldValidator(value) {
+	if (value == null || value == undefined || !value.length) {
+		return {
+			valid : false,
+			msg : "This is a required field"
+		};
+	} else {
+		return {
+			valid : true,
+			msg : null
+		};
+	}
+}
+
+$(function () {
+  
+		var callTicketsQueryLimit=${callTicketsQueryLimit}
+		if(callTicketsQueryLimit>0)
+		{
+			alert("查询到的记录数超过"+callTicketsQueryLimit+"行")
+		}
+		data =${data}
+		
+		enableButton('searchButton',true);
+		
+	  	grid = new Slick.Grid("#myGrid", data, columns, options);
+		
+	  	grid.setSelectionModel(new Slick.RowSelectionModel());
+	
+		var moveRowsPlugin = new Slick.RowMoveManager();
+		
+		
+		
+		
+	  	moveRowsPlugin.onBeforeMoveRows.subscribe(function (e, data) {
+	    for (var i = 0; i < data.rows.length; i++) {
+	      // no point in moving before or after itself
+	      if (data.rows[i] == data.insertBefore || data.rows[i] == data.insertBefore - 1) {
+	        e.stopPropagation();
+	        return false;
+	      }
+	    }
+	    return true;
+	  });
+		
+	  
+	  
+	  
+	  grid.onDblClick.subscribe(function (e, args) {
+		   	var selectedRows = grid.getSelectedRows();
+		   	playList = new Array();
+		   	playIndex=0;
+		   
+<%--			   	for (var i = 0; i <selectedRows.length; i++) {--%>
+<%--			   		setRecordUrl(data[selectedRows[i]].sequenceNumber,data[selectedRows[i]].savefilename,selectedRows[i]);--%>
+<%--			    }--%>
+<%--			   	for (var i = selectedRows[0]; i <data.length; i++) {--%>
+<%--			   		setRecordUrl(i,data[i].savefilename)--%>
+<%--			   	}--%>
+			   	
+			   //	playrecord(playList[0][1],playList[0][0]);
+			   	getReview(playList[0][0],true);
+      			
+		   		//cl(e);
+		   	
+   	  });
+	  
+	  
+	  
+	  grid.onSelectedRowsChanged.subscribe(function (e, args) {
+		   		var selectedRows = grid.getSelectedRows();
+		   		playList = new Array();
+		   		playIndex=0;
+		   		isPlayAll=true;
+		   		selectedRows = selectedRows.sort(
+	             	function(x,y)
+	             	{
+	                 	return (x - y);
+	             	}
+         		);
+		   		selectTickets=selectedRows;
+		   		showPlayer("divPlayer", "");
+		   		try{
+<%--		   		for (var i = 0; i <selectedRows.length; i++) {--%>
+<%--		   			setRecordUrl(data[selectedRows[i]].sequenceNumber,data[selectedRows[i]].savefilename,selectedRows[i]);--%>
+<%--		   		--%>
+<%--		   			cl("selectedRows[i]"+selectedRows[i])--%>
+<%--		    	}--%>
+<%--		   		for (var i = selectedRows[0]; i <data.length; i++) {--%>
+<%--			   		setRecordUrl(i,data[i].savefilename)--%>
+<%--			   	}--%>
+		   		
+		   		currTicket=selectedRows[0];
+		   		getReview(selectedRows[0],false);
+		   	}catch(e){
+		   		cl(e);
+		   	}
+		   	
+		   	
+      		
+   	  });
+  
+      grid.onSort.subscribe(function (e, args) {
+          var cols = args.sortCols;
+
+	      data.sort(function (dataRow1, dataRow2) {
+	        for (var i = 0, l = cols.length; i < l; i++) {
+	          var field = cols[i].sortCol.field;
+	          var sign = cols[i].sortAsc ? 1 : -1;
+	          var value1 = dataRow1[field], value2 = dataRow2[field];
+	          var result = (value1 == value2 ? 0 : (value1 > value2 ? 1 : -1)) * sign;
+	          if (result != 0) {
+	            return result;
+	          }
+	        }
+	        return 0;
+	      });
+	      
+	      grid.invalidate();
+	      grid.render();
+	    });
+  
+	
+      grid.setSelectedRows([0]);
+  	  currTicket=0;// 选中第一条话单为当前话单
+  	
+});
+
+//设置播放列表
+function setRecordUrl(selectIndex,fileNames) {
+	
+	var arr=fileNames.split(',');
+	for (var i = 0, l = arr.length; i < l; i++) {
+		
+		//alert(recordPath+"/"+arr[i].substring(4, 6)+"/"+arr[i]);
+		playList.push([selectIndex,recordPath+"/"+arr[i].substring(4, 6)+"/"+arr[i]]);
+		//alert(arr[i])
+	}
+	
+	
+}
+
+function playrecord(url,selectIndex) {
+	isPlaying=true;
+	ticketid=data[selectIndex].sequenceNumber;
+	$("#ticketid").val(ticketid);
+	
+	if(currTicket>-1){
+		
+		data[currTicket].status=false;
+	}
+	
+	data[selectIndex].status=true;
+	currTicket=selectIndex;
+	grid.setData(data);
+	grid.render();
+	deletePlayer();
+	showPlayer("divPlayer", url);	
+}
+
+
+function getReview(selectIndex,isPlay)
+{
+	ticketid=data[selectIndex].sequenceNumber;
+	$("#ticketid").val(ticketid);
+	//getReview(playList[0][0],playList[0][2]);
+	cl("ticketid:"+ticketid);
+	cl("currTicket:"+currTicket);
+	if(ticketid==""){
+  		return;
+  	}
+	;
+	$("#operatorName1").val(data[selectIndex].operatorName);
+	
+         
+  				     
+        jQuery.ajax( {     
+          type : 'get',
+          url : '${ctxPath}/callticket/getReviewJson/'+ticketid+'.do',    
+          dataType : 'json',
+          success : function(res) {
+        	  		recordArr = res.record;
+        	  		
+        	  		if(recordArr!=""){
+        	  			cl(recordArr);
+        	  			var arr=recordArr.split(',');
+        	  			playList = new Array();
+        	  			for (var i = 0, l = arr.length; i < l; i++) {
+        	  				
+        	  				//alert(recordPath+"/"+arr[i].substring(4, 6)+"/"+arr[i]);
+        	  				playList.push([selectIndex,recordPath+"/"+arr[i].substring(4, 6)+"/"+arr[i]]);
+        	  				//alert(arr[i])
+        	  			}
+        	  			
+        	  		}
+        	  		
+        	  		cl("playIndex"+playIndex)
+        	  		
+        	  		res = eval( "(" + res.data + ")" );
+        	  		if(isPlay){
+        	  			playrecord(playList[0][1],playList[0][0]);
+        	  		}
+        	  		
+        	  		if(res==null){
+         	  				$("input[name='type'][value='0']")
+									.attr("checked", true);
+								$("input[name='answer'][value='0']")
+										.attr("checked", true);
+								$(
+										"input[name='numbertype'][value='0']").attr(
+										"checked", true);
+								$(
+										"input[name='checknumber'][value='0']").attr(
+										"checked", true);
+								$(
+										"input[name='dealproblem'][value='0']").attr(
+										"checked", true);
+								$(
+										"input[name='serviceterms'][value='0']").attr(
+										"checked", true);
+								$(
+										"input[name='isbad'][value='0']").attr(
+			"checked", true);
+}
+        	  		else{
+        	  				
+        	  				
+         	  			$("input[name='type'][value='"+res.type+"']")
+							.attr("checked", true);
+						$("input[name='answer'][value='"+res.answer+"']")
+								.attr("checked", true);
+						$(
+								"input[name='numbertype'][value='"+res.numbertype+"']").attr(
+								"checked", true);
+						$(
+								"input[name='checknumber'][value='"+res.checknumber+"']").attr(
+								"checked", true);
+						$(
+								"input[name='dealproblem'][value='"+res.dealproblem+"']").attr(
+								"checked", true);
+						$(
+								"input[name='serviceterms'][value='"+res.serviceterms+"']").attr(
+								"checked", true);
+						$(
+								"input[name='isbad'][value='"+res.isbad+"']").attr(
+								"checked", true);
+											
+					}
+        	  		
+                         
+          }, 
+          error : function(data) {     
+            alert("error")     
+          }     
+        });
+}
+
+
+
+function playSelect()
+{
+	if(playList.length>0){
+		playIndex=0;
+		//playrecord(playList[0][1],playList[0][0]);
+		getReview(playList[0][0],true);
+	}
+}
+function Stop(){
+	
+	showPlayer("divPlayer", "");
+<%--	if(data!=null&&data.length>0){--%>
+<%--		if(isPlaying){--%>
+<%--			isPlaying=false;--%>
+<%--			showPlayer("divPlayer", "");--%>
+<%--			$("#stopPlay").val("恢复播放");--%>
+<%--			--%>
+<%--		}else{--%>
+<%--			isPlaying=true;--%>
+<%--			$("#stopPlay").val("停止播放");--%>
+<%--			playrecord(playList[playIndex][1],playList[playIndex][0]);--%>
+<%--			getReview(playList[playIndex][0]);--%>
+<%--		}--%>
+<%--	}--%>
+			//playList = new Array();
+		   	//playIndex=0;
+}
+function addValidate() {
+	/* 设置默认属性 */
+	$.validator.setDefaults( {
+		submitHandler : function(form) {
+		
+		
+			enableButton('searchButton',false);
+			form.submit();
+		}
+	});
+		jQuery.validator.addMethod("stringCheck", function(value, element) {
+		return this.optional(element) || /^[a-zA-Z0-9]+$/.test(value);
+	}, "只允许英文字母、数字");
+	
+	// 联系电话(手机/电话皆可)验证   
+	jQuery.validator.addMethod("isPhone", function(value, element) {
+		var length = value.length;
+		//var mobile = /^(((13[0-9]{1})|(15[0-9]{1}))+\d{8})$/;
+			var tel = /^\d{1,19}$/;
+			return this.optional(element) || (tel.test(value));
+
+		}, "输入1到19位的数字");
+	
+	
+
+		
+//自定义验证方法
+    jQuery.validator.addMethod("endDate",
+    function(value, element) {
+        var startDate = $('#startstartTime').val();
+        var endDate=$('#endstartTime').val();
+        if(startDate==""||endDate=="")
+        {
+        	
+        	return true;
+        }
+       // return new Date(Date.parse(startDate.replace("-", "/"))) < = new Date(Date.parse(value.replace("-", "/")));
+         return ((new Date(startDate.replace(/-/g,"\/")))<= (new Date(endDate.replace(/-/g,"\/")))); 
+    },
+    "结束日期大于开始日期");
+
+	// validate signup form on keyup and submit
+$("#form").validate({
+		rules: {
+			operatorName: { stringCheck:true,
+			maxlength: 20				
+			},
+			callingNumber: { isPhone:true,				
+			},
+			calledNumber: { isPhone:true,				
+			},
+			startstartTime: {endDate:true			
+			},
+			endstartTime: {endDate:true			
+			},
+		},
+		messages: {
+			operatorName: {
+				maxlength:"长度必须小于20"
+			},
+			startstartTime: {			
+			},
+			endstartTime: {	
+			},
+		}
+	});
+	
+}
+
+showPlayer("divPlayer", "");
+
+</script>
+	</body>
+</html>

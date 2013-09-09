@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?> 
+<weblogic-web-app xmlns="http://www.bea.com/ns/weblogic/90" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"> 
+	<container-descriptor>
+		<prefer-web-inf-classes>true</prefer-web-inf-classes>
+	</container-descriptor>
+	<context-root>/</context-root>
+	<resource-description>
+	    <res-ref-name>s2sh</res-ref-name>    
+	    <jndi-name>s2sh</jndi-name>
+  </resource-description>	
+</weblogic-web-app>
+

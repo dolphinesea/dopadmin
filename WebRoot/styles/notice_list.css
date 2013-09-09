@@ -1,0 +1,85 @@
+.notice_list .list {
+	padding: 15px 0;
+	border-bottom-color: #C3D7DB;
+	border-bottom-style: dotted;
+	border-bottom-width: 1px;
+	border-left-color: #C3D7DB;
+	border-right-color: #C3D7DB;
+	border-top-color: #C3D7DB;
+}
+
+.notice_list .face {
+	float: left;
+	width: 25px;
+	padding-top: 1px;
+}
+
+.notice_list .name_time {
+	float: left;
+	/*width: 125px;**/
+	padding-right: 5px;
+}
+
+.notice_list .name {
+	padding-bottom: 3px;
+	line-height: 1.4;
+}
+
+.notice_list .main {
+	margin-left: 200px;
+	cursor: pointer;
+}
+
+.notice_list .notice {
+	margin-right: 50px;
+	_zoom: 1;
+}
+
+.notice_list .button {
+	float: right;
+	width: 60px;
+	text-align: right;
+	padding-top: 19px;
+}
+
+.notice_list .title {
+	font-size: 1em;
+	padding-bottom: 3px;
+	font-weight: normal;
+	color: #000;
+}
+
+.notice_list .content {
+	height: 22px;
+	line-height: 22px;
+	white-space: nowrap;
+	width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	word-wrap: break-word;
+}
+
+.notice_list .content img {
+	vertical-align: middle;
+}
+
+.notice_list .content.expanded {
+	white-space: normal;
+	height: auto;
+}
+
+.notice_list .unread .name,.notice_list .unread .title {
+	font-weight: bold;
+}
+
+#js_style_css_module_list_notice_list {
+	height: 42px;
+}
+
+.W_textb, a.W_textb {
+    color: #999999;
+}
+
+.W_textb, a.W_textb {
+    cursor: default;
+}

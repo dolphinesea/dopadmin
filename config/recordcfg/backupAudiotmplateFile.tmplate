@@ -1,0 +1,479 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+     
+    <title>备份录音文件播放</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=gbk"/> 
+<script src="jquery.js"></script>
+<style type="text/css">
+    th{
+        background-color:#EFEFEF;
+        border-right:1px solid #FFF;
+        border-bottom:1px solid #FFF;
+    }
+    td{
+		font: normal 12px 'verdana', '微软雅黑';
+	}
+    td,th{
+        text-align:left;
+        
+    }
+   	table{
+		position: relative;
+		top: -45px;
+	} 
+    table tbody tr{
+        background-color:#FeFeFe;
+    }
+    
+    table tbody tr td ul li{
+        margin-top:10px;
+    }
+    table tbody tr td ul li label:hover{
+        background-color:#EFB355;
+        color:#FFF;
+    }
+    table tbody tr td ul li >span{
+        display:inline-block;
+        width:250px;
+    }
+    table tbody tr td ul li >label{
+        display:inline-block;
+        width:50px;
+        text-align:center;
+        cursor:pointer;
+        background-color:#EFEFEF;
+        margin-left:60px;
+        border-radius:4px 4px 4px 4px;
+        color:#333;
+        font-weight:700;
+    }
+
+    table tbody tr td{
+      border-bottom:1px dotted #333;
+  }
+  table{
+    margin:50px 0 0 0;
+}
+
+  table tr>td>span{
+	display: inline-block;
+	width: 25px;
+	height: 16px;
+	background: #2877ed;
+	margin: 0 3px;
+	color: white;
+	font: normal bold 11px 'tahoma';
+	text-align: center;	
+    cursor: pointer;
+  }
+  
+  table tr>td>span:hover{
+
+  }
+
+.out-player{
+    display:block
+    margin:20px 0 0 30px;
+    position:absolute; 
+    overflow:hidden;
+    width:100px;
+    border:1px solid #ccc;
+    margin:28px;
+}
+.out-player select{
+    margin:-2px;
+    margin-right:-40px;
+    width:150px;
+}
+.flodspan{
+    display:inline-block;
+    width:5px;
+    height:5px;
+    border-bottom:1px solid #111;
+    border-right:1px solid #111;
+    -moz-transform: rotate(45deg);
+    margin-bottom:-7px;
+}
+.fold{
+    display:inline-block;
+    width:12px;
+    height:12px;
+    border:1px solid #111;
+    border-radius:7px 7px 7px 7px;
+    cursor:pointer;
+    margin-bottom:-20px;
+}
+.fold_{
+    display:inline-block;
+    width:12px;
+    height:12px;
+    border:1px solid #111;
+    border-radius:7px 7px 7px 7px;
+    cursor:pointer;
+    margin-bottom:-20px;
+    -moz-transform:rotate(180deg);
+}
+</style>
+</head>
+<body>
+ <div id="player" ></div>
+<!--<span class="out-player">
+<select onchange="setplayer()">
+    <option value="-1">设置<option>
+    <option value="1">顺序播放<option>
+    <option value="2">单个播放<option>
+    <option value="3">循环播放<option>
+</select>
+</span>-->
+<div style="width: 100%; height: 500px; overflow:auto;">
+ <table cellspacing="0" cellpadding="0" width="100%" id="table" border="0">
+  <thead>
+      <tr>
+          <th> 工号 </th>
+          <th> 主叫 </th>
+          <th> 被叫 </th>
+          <th> 开始 </th>
+          <th> 结束 </th>
+          <th> 评估 </th>
+          <th>  </th>
+      </tr>
+  </thead>
+  <tbody>
+    ${DATA_INSERT}
+</tbody>
+</table>
+</div>
+</body>
+<script type="text/javascript">
+var isPlayAll = false; // 是否播放全部
+var playIndex = -1; // 录音列表游标 
+var preState = 0;//播放器状态
+var playlist = [];
+var obj = null;//记录当前行对象
+
+$(function(){
+	Player("");
+	$("td[name='result']").each(function(){
+		var result = $(this).html();
+       	$(this).html(newcovertResult(result,"zh"));
+	});
+});
+
+function cl(log){
+	console.log("javascript log:"+log);
+}
+
+function OnDSPlayStateChangeEvt(NewState) {
+	cl("in OnDSPlayStateChangeEvt");
+	if (isPlayAll) {
+		// 自动播放
+		//判断是否 有录音文件
+		if (NewState == 8 || NewState == 10) {
+			if (playIndex < playlist.length-1) {
+				playIndex++;
+				cl("playIndex:" + playIndex);
+				cl("playlist[playIndex]:" + playlist[playIndex]);
+				deletePlayer();
+				Player(playlist[playIndex]);
+			} else {
+				Player("");
+				isPlayAll = false;
+			}
+		}
+
+	} else {
+		// 单选播放
+		
+		if (preState==9 && NewState == 10) {
+			// 
+				
+				//$("input[name='song'][value=" + currPlaySong + "]").parent().parent().removeClass("over");
+				//$("input[name='song'][value=" + currPlaySong + "]").parent().parent().addClass("nofile");
+
+		}
+		if (NewState == 8 || NewState == 10) {
+			Player("");
+		}
+	}
+	if (NewState==1) {
+			//Stop();
+			//playList = new Array();
+		   	//playIndex=0;
+			 
+				//$("input[name='song'][value=" + playList[playIndex] + "]").parent().parent().removeClass("over");
+				//$("input[name='song'][value=" + playList[playIndex] + "]").parent().parent().addClass("nofile");
+
+	}
+	preState=NewState;
+}
+      
+function settable(){
+       var table =   document.getElementById("table");
+       var rows = table.rows;
+        for (var i = 2; i < rows.length;i+=2){
+           rows[i].style.display="none";
+        }
+}
+
+function deletePlayer() {
+	if (document.getElementById("Player")) {
+		try{
+			document.getElementById("Player").parentNode.removeChild(document
+				.getElementById("Player"));
+		}
+		catch(e){
+			
+		}
+		
+	}
+}
+
+function playwav(o, startindex){
+	if(obj != null){
+		obj.removeAttribute("style");
+		obj=o.parentNode.parentNode;
+		o.parentNode.parentNode.setAttribute("style", "background: #CEE4F5;");
+	}
+	else{
+		obj=o.parentNode.parentNode;
+		o.parentNode.parentNode.setAttribute("style", "background: #CEE4F5;");
+	}
+
+	playlist = o.parentNode.nextSibling.innerHTML.split(",");
+	playIndex = startindex;
+	isPlayAll=true;
+	deletePlayer();
+	Player(playlist[playIndex]);
+}
+
+function flodnext(el){
+ var nextrowstatu =   document.getElementById("table").rows[el.parentElement.rowIndex+1].style.display;
+ if(nextrowstatu == 'none'){
+     el.setAttribute("class","fold_");
+      el.setAttribute("title","收起");
+        document.getElementById("table").rows[el.parentElement.rowIndex+1].style.display ="table-row";
+ }else{
+     document.getElementById("table").rows[el.parentElement.rowIndex+1].style.display ="none";
+     el.setAttribute("class","fold");
+     el.setAttribute("title","展开");
+  }
+}
+
+function playbackup(url,elem){
+          var labels = document.getElementsByTagName("label");
+            for ( var i = 0; i<labels.length;i++){
+                labels[i].style.background="#EFEFEF";
+                labels[i].style.color="#333";
+            }
+          elem.style.background="#EFB355";
+          elem.style.color="#FFF";
+          if (url == '')
+          {
+    	    var labels = document.getElementsByTagName("label");
+            for ( var i = 0; i<labels.length;i++){
+                labels[i].style.background="#EFEFEF";
+                labels[i].style.color="#333";
+            }
+          }
+          Player(url)
+      }  
+
+function Player(url) {
+	var vhtml = '<object id="Player"';
+	var userAg = navigator.userAgent;
+	if (-1 != userAg.indexOf("MSIE")) {
+		vhtml += ' classid="clsid:6BF52A52-394A-11d3-B153-00C04F79FAA6"';
+	} else if (-1 != userAg.indexOf("Firefox")
+			|| -1 != userAg.indexOf("Chrome") || -1 != userAg.indexOf("Opera")
+			|| -1 != userAg.indexOf("Safari")) {
+		//vhtml += ' type="application/x-mplayer2"';
+		vhtml += ' type="application/x-ms-wmp"';
+
+	}
+	vhtml += ' width="100%" height="64">';
+	vhtml += '<param name="URL" value="'+url+'"/>';
+	//下面这些播放器的参数自己配置吧
+	vhtml += '<param name="autoStart" value="1" />';
+	vhtml += '<param name="invokeURLs" value="true">';
+	vhtml += '<param name="playCount" value="1">';
+	vhtml += '<param name="Volume" value="100">';
+	vhtml += '<param name="loop" value="false">';
+	vhtml += '<param name="defaultFrame" value="datawindow">';
+	vhtml += '</object>';
+	document.getElementById("player").innerHTML = vhtml;
+	//document.getElementById("Player").settings.requestMediaAccessRights("full");
+}
+
+function covertResult(value)
+{
+	//value="000,"+value
+	//    	*   nnn:   $      n     <>:      J:       F:    +-:       Y:    X
+    //  opeartorName,answer,checktime,checknumber,numbertype,dealproblem,serviceterms,isbad
+    //dop,1,00:00:00,1,1,1,1,0 
+        var cov=value.split(',');
+    	//value=cov[0];
+    	value="";
+    	if(cov[1]=="1")
+    	{
+    		value+="$";
+    	}    	
+    	value+=cov[2].split(':')[1];
+    	
+    	if(cov[3]=="1")
+    	{
+    		value+=">";
+    	}
+    	if(cov[3]=="2")
+    	{
+    		value+="&lt";
+    	}
+    	
+    	if(cov[4]=="1")
+    	{
+    		value+="J";
+    	}
+    	if(cov[4]=="2")
+    	{
+    		value+="F";
+    	}
+    	if(cov[5]=="1")
+    	{
+    		value+="+";
+    	}
+    	if(cov[5]=="2")
+    	{
+    		value+="-";
+    	}
+    	if(cov[6]=="2")
+    	{
+    		value+="Y";
+    	}
+    	
+    	if(cov[7]=="1")
+    	{
+    		value+="X";
+    	}
+           
+            return value;
+    }
+    
+    
+function newcovertResult(value,type)
+{
+    //value="000,"+value
+    //      *   nnn:   $      n     <>:      J:       F:    +-:       Y:    X
+    //  opeartorName,answer,checktime,checknumber,numbertype,dealproblem,serviceterms,isbad
+    //dop,  1,00:00:00,1,1,1,1,0 
+    //  dop,2,1,00:00:00,1,1,1,1,1
+      var cov=value.split(',');
+      var value2 = ""
+        // value=cov[0];
+        value="";
+        if (cov[1] == "1")
+           value2 += "重要1\n";
+        if (cov[1] == "2")
+           value2 += "重要2\n";
+        if(cov[2]=="1")
+        {
+            value+="$";
+            value2 += "超时\n";
+        }       
+        //value2+=getsec(cov[3].split(':')[1] + cov[3].split(':')[2]);
+        
+        if(cov[4]=="1")
+        {
+            value+=">";
+            value2 += "大超时\n";
+        }
+        if(cov[4]=="2")
+        {
+            value+="&lt";
+            value2 += "小超时\n";
+        }
+        
+        if(cov[5]=="1")
+        {
+            value+="J";
+            value2 += "基本号\n";
+        }
+        if(cov[5]=="2")
+        {
+            value+="F";
+            value2 += "非基本号\n";
+        }
+        if(cov[6]=="1")
+        {
+            value+="+";
+            value2 += "处理好\n";
+        }
+        if(cov[6]=="2")
+        {
+            value+="-";
+            value2 += "处理坏\n";
+        }
+        if(cov[7]=="2")
+        {
+            value+="Y";
+            value2 += "用语坏\n";
+        }
+        
+        if(cov[8]=="1")
+        {
+            value+="X";
+            value2+="有差错\n";
+        }
+        if (type == "en")
+            return value;
+        return value2;
+}
+
+function getsec(str){
+	var ret = 0;
+	var ge = parseInt(str.substr(3,1));
+	var shi = parseInt(str.substr(2,1));
+	var bai = parseInt(str.substr(1,1));
+	var qian = parseInt(str.substr(0,1));
+	
+	if(qian == 0){
+		if(bai == 0){
+			if(shi == 0){
+				ret = ge;
+			}
+			else{
+				ret = shi * 10 + ge;
+			}
+		}
+		else{
+			ret = bai * 100 + shi * 10 + ge;
+		}
+	}
+	else{
+		ret = qian * 1000 + bai * 100 + shi * 10 + ge;
+	}
+	
+	return ret;
+}
+
+
+/* function setplayer(name,value){
+	var Days=30;//过期时间30天
+	var date=new Date(); 
+	date.setTime(date.getTime()+Days*24*60*60*1000);
+	document.cookie=name+"="+escape(value)+";expires="+date.toGMTString();
+}
+// 读取cookies的值
+function getCookie(name){
+	var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)");
+	if(arr=document.cookie.match(reg)){
+		return unescape(arr[2]);
+	}
+	else{
+		return null;
+	}
+}
+ */
+ </script>
+</html>
+
+

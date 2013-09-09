@@ -1,0 +1,65 @@
+    .dialog {
+        margin: 5px;
+        border:1px solid gray;
+        border-radius: 3px;
+        font-family: "Sans Serif", "Verdana", "微软雅黑";
+    }
+
+    .dialog ul {
+        margin: 0 0 2px 0;
+        padding: 20px 0px;
+        list-style-type: none;
+        background: #eeeeee;
+        box-shadow: 0 1px 0px gray, 0 2px 0px white;
+    }
+
+    .dialog li {
+        padding: 5px 40px;
+    }
+    
+    .dialog li textarea{
+    	-moz-user-select: text;
+    }
+
+    .dialog span {
+        display: inline-block;
+        width: 100px;
+    }
+
+    .dialog input[type=text] {
+        display: inline-block;
+        vertical-align: middle;
+        width: 240px;
+        height: 28px;
+        font-size: 1.1em;
+        -moz-user-select: text;
+    }
+    
+    .dialog input[type=password] {
+        display: inline-block;
+        vertical-align: middle;
+        width: 240px;
+        height: 28px;
+        font-size: 1.1em;
+        -moz-user-select: text;
+    }
+    
+    .dialog select{
+    	width: 80px;
+    	font-size: 1em;
+    }
+    
+    .dialog .buttons {
+        margin: 0;
+        padding: 10px 0 0 0;
+        height: 40px;
+        background: -moz-linear-gradient(-90deg, #cccccc, #c0c0c0);
+    }
+
+    .buttons>div {
+        float: right;
+        margin-right: 40px;
+    }
+    .buttons .button {
+        margin: 0 0 0 20px;
+    }

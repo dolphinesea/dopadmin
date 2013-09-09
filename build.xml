@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="dopadmin" basedir="." default="war">
+    <property name="version"  value="1.0.0.0"/>
+	<property name="Manifest-Version" value="1.0" />
+    <property name="Manifest-author" value="yanglei" />
+    <property name="generatepath" value="install/."/>
+    <property name="jdk.version" value="${java.version}"/>
+    <property name="src.dir" value="src"/>
+	<property name="webroot.dir" value="WebRoot" />
+    <property name="class.dir" value="${webroot.dir}/WEB-INF/classes"/>
+    <property name="lib.dir" value="${webroot.dir}/WEB-INF/lib"/>
+	<property name="meta-inf.dir" value="${webroot}/META-INF" />
+	<property name="manifest.dir" value="${meta-inf.dir}/${manifest.filename}" />
+
+    <path id="classpath">
+        <fileset dir="${lib.dir}"/>
+    
+    </path>
+    <target name="clean">
+        <delete dir="${meta-inf.dir}"/>
+        <delete dir="${generatepath}/xms.war"/>
+        <delete dir="${class.dir}"/>
+    	<delete dir="xmscfg/."/>
+    </target>
+    
+    <target name="war" depends="complete,config" >
+        <echo>generate war package ./src/config/</echo>
+        <war destfile="${generatepath}/${ant.project.name}.war" basedir="${webroot.dir}" />
+       	 
+    </target>
+    
+    <target name="complete" depends="init">
+        <echo> complete </echo>
+        <javac srcdir="${src.dir}" destdir="${class.dir}" classpathref="classpath" debug="on">
+            <compilerarg line="-encoding UTF-8"/>
+        </javac>
+    	
+    </target>
+    <target name="init" depends="clean">
+        <mkdir dir="${class.dir}"/>
+        <mkdir dir="install"/>
+    </target>
+    <target name="config">
+        <echo>generate config.................................</echo>
+        <copy todir="${class.dir}">
+            <fileset dir="./config" includes="**/*.xml"/>
+            <fileset dir="./config" includes="**/*.properties"/>
+        </copy>
+    </target>
+</project>

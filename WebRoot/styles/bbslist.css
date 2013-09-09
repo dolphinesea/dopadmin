@@ -1,0 +1,71 @@
+    .bbslist {
+        margin: 0;
+        //padding: 0 10px;
+        overflow: auto;
+        border-top: 1px solid #444;
+        border-bottom: 1px solid #444;
+        font: 14px "Sans Serif", "微软雅黑";
+    }
+    .bbslist > li {
+        list-style: none;
+        border-top: 1px solid #ccc;
+    }
+    .bbslist > li:first-child {
+        border-top: 0;
+    }
+    .bbslist > li[type="1"] .bbshead {
+        color: #ff4940;
+    }
+    .bbslist > li[type="1"] .bbsbody {
+        color: black;
+    }
+    .bbslist > li[type="1"] .bbshead .writer {
+    	color: red;
+    }
+    
+    .bbslist > li[type="2"] .bbshead {
+        color: #2206F9;
+    }
+    .bbslist > li[type="2"] .bbsbody {
+        color: black;
+    }
+    .bbslist > li[type="2"] .bbshead .writer {
+    	color: blue;
+    }
+    
+    .bbslist > li[type="3"] .bbshead {
+        color: #090909;
+    }
+    .bbslist > li[type="3"] .bbsbody {
+        color: black;
+    }
+    .bbslist > li[type="3"] .bbshead .writer {
+    	color: black;
+    }
+
+    .bbslist .bbshead {
+        padding-left: 3%;
+        border-bottom: 1px dotted #ccc; 
+        font-size: 0.9em;
+        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
+        color: #666;
+        letter-spacing: 1px;
+    }
+    .bbslist .bbsbody {
+        padding-left: 5%;
+        font-size: 0.95em;
+        letter-spacing: 2px;
+        line-height: 1.6em;
+        color: #222;
+    }
+    
+    .bbslist .button{
+    	opacity: 0.7;
+    	float: right;
+    	height: 18px;
+    	margin-left: 10px;
+    	padding-top: 0px;
+    	border: 0px;
+    	background: rgba(0,0,0,0);
+    	width: 50px;
+    }

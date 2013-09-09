@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=gbk"/>
+  <title>话务管理</title>
+  <link rel="stylesheet" href="conmons/slick.grid.css" type="text/css"/>
+  <link rel="stylesheet" href="conmons/slick-default-theme.css" type="text/css"/>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: White;
+      overflow: auto;
+    }
+
+    body {
+        font: 10pt Helvetica, Arial, sans-serif;
+    }
+
+    #container {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      margin-left:2px;
+      width:99%;
+    }
+
+    #description {
+      position: fixed;
+      top: 30px;
+      right: 30px;
+      width: 25em;
+      background-color: beige;
+      border: solid 1px gray;
+      z-index: 1000;
+    }
+
+    #description h2 {
+      padding-left: 0.5em;
+  }
+  .drsElement{
+  position:absolute;
+  border:1px solid #ccc;
+  border-radius:4px 4px 4px 4px;
+  background:#EFEFEF;
+  display:none;
+  padding:0 0 10px 0;
+  }
+  .drsMoveHandle{
+      display:block;
+      color:#878787;
+      font-family:宋体;
+      font-size:11pt;
+      border-bottom:1px solid #ccc;
+      padding-left:8px;
+      cursor: move;
+  }
+  .context{
+      display:block;
+      padding-left:25px;
+      color:#555;
+      font-size:10pt;
+
+  }
+  .detail{
+      display:inline-block;
+      width:15px;
+      height:15px;
+      background:url('conmons/images/ui-icons_cd0a0a_256x240.png') no-repeat scroll -145px -144px; 
+      margin-top:2px;
+  }
+  .closed{
+      background:url('conmons/images/ui-icons_cd0a0a_256x240.png') no-repeat scroll -95px -127px;
+      display:inline-block;
+      width:18px;
+      height:18px;
+      float:right;
+      margin-right:10px;
+      border:1px solid #ccc;
+      border-radius:5px 5px 5px 5px;
+      cursor:pointer;
+  }
+  </style>
+</head>
+<body>
+   
+ <div id="media">
+  <object id="Player" width="100%" height="45" style="margin-top:20px;" type="application/x-ms-wmp" >
+     <param name="URL" value="">
+     <param name="autoStart" value="true">
+     <param name="playCount" value="1">
+  </object>
+</div>
+<div id="container"></div>
+<div id="message" class="drsElement" style="top:250px;left:400px; min-height:100px;min-width:400px;">
+    <span class='drsMoveHandle'><label class="detail"> </label>详情 <label class="closed" title="关闭 Esc"
+                                   onclick="javascript:$('#message').css('display','none');"></label></span> 
+  <span class='context'></span>
+</div>
+<!--<p id="test" style="margin-top:400px;"> </p>-->
+<!--
+<div id="description">
+  <h2>Demonstrates:</h2>
+  <ul>
+    <li>Sorting grid items by an index</li>
+    <li>Using the getItem method to provide data</li>
+  </ul>
+</div>
+-->
+<script src="conmons/lib/jquery-1.7.min.js"></script>
+<script src="conmons/lib/jquery.event.drag-2.0.min.js"></script>
+<script src="conmons/slick.core.js"></script>
+<script src="conmons/slick.grid.js"></script>
+<script src="conmons/lib/slick.rowselectionmodel.js"></script>
+<script src="conmons/lib/dragresize.js"></script>
+<script>
+  var playerhandler, playlist = [];
+  var Player;
+
+  var grid,
+   data = ${data},
+  columns = [ {id : "sequenceNumber",name : "编号",field : "sequenceNumber",width : 35,sortable : true}, 
+              {id : "operatorDesk",name : "坐席号",field : "operatorDesk",width :43,sortable : true},              
+              {id : "operatorName",name : "操作员",field : "operatorName",width : 43,sortable : true}, 
+              {id : "callType",name : "类型",field : "callType",width : 35,sortable : true},
+              {id : "callingNumber",name : "主叫号码",field : "callingNumber",width : 60,sortable : true},
+              {id : "calledNumber",name : "被叫号码",field : "calledNumber",width : 60,sortable : true},
+              {id : "startTime",name : "开始时间",field : "startTime",width : 90,sortable : true},
+              {id : "answerLength",name : "应答时长",field : "answerLength",width:50,sortable : true},                 
+              {id : "establishTime",name : "通话时间",field : "establishTime",width : 60,sortable : true},
+              {id : "stopTime",name : "结束时间",field : "stopTime",width : 60,sortable : true},
+              {id : "result",name : "评估结果",field : "result",width : 150}, 
+              {id : "detailshow",name : "详情",field : "detailshow",width : 50}
+           ],
+  options = {
+        enableCellNavigation: false,
+        enableColumnReorder: false,
+        multiColumnSort: true,
+        asyncEditorLoading: true,
+        forceFitColumns : true
+    };
+    $(function(){
+        Player = document.getElementById("Player");
+        var dragresize = new DragResize("dragresize",
+              { minWidth: 50, minHeight: 50, minLeft: 2, minTop: 2, maxLeft: 1200, maxTop: 650 });
+        dragresize.isElement = function(elm){
+           if (elm.className && elm.className.indexOf("drsElement") > -1) 
+           return true;
+        };
+        dragresize.isHandle = function(elm){
+         if (elm.className && elm.className.indexOf("drsMoveHandle") > -1) return true;
+        };
+       dragresize.apply(document);
+   });
+  grid = new Slick.Grid("#container",data, columns, options);
+  grid.setSelectionModel(new Slick.RowSelectionModel()); 
+  grid = new Slick.Grid("#container",data, columns, options);
+  grid.setSelectionModel(new Slick.RowSelectionModel()); 
+  grid.onSelectedRowsChanged.subscribe(function (e, args) {
+  });
+
+  grid.onDblClick.subscribe(function (e, args) {
+      var wavs = data[args.row]["wavs"];
+      i = 0;
+      playlist.push(wavs);
+      Player.URL = wavs[i];
+      i++;
+      Player.controls.play();
+      playerhandler = setInterval(function(){
+          //$("#test").html(Player.controls.currentPosition +" ---- " );
+          if (Player.playState == 1){
+                    Player.controls.stop();
+                    Player.URL = wavs[i];
+                    if (wavs[i] != undefined){
+                    Player.controls.play();
+                    i++;
+                }
+            }
+            }, 1000);
+  });
+
+ grid.onClick.subscribe(function(e,args) {
+     var curcell = args.cell;
+     if (curcell == 11){
+         $(".context").html(data[args.row].detail);
+         $('#message').css('display','block');
+    }
+     
+     grid.setSelectedRows([args.row])
+ });
+ 
+  grid.onSort.subscribe(function (e, args) {
+      var cols = args.sortCols;
+      data.sort(function (dataRow1, dataRow2) {
+          for (var i = 0, l = cols.length; i < l; i++) {
+          var field = cols[i].sortCol.field;
+          var sign = cols[i].sortAsc ? 1 : -1;
+          var value1 = dataRow1[field], value2 = dataRow2[field];
+          var result = (value1 == value2 ? 0 : (value1 > value2 ? 1 : -1)) * sign;
+          if (result != 0) {
+            return result;
+          }
+        }
+        return 0;
+    });
+    grid.onKeyDown.subscribe(function (e) {
+        // select all rows on ctrl-a
+        alert(1);
+  });
+    
+    grid.invalidate();
+    grid.render();
+});
+//change result.
+function covertResult(value,type)
+{
+    //value="000,"+value
+    //      *   nnn:   $      n     <>:      J:       F:    +-:       Y:    X
+    //  opeartorName,answer,checktime,checknumber,numbertype,dealproblem,serviceterms,isbad
+    //dop,  1,00:00:00,1,1,1,1,0 
+    //  dop,2,1,00:00:00,1,1,1,1,1
+      var cov=value.split(',');
+      var value2 = ""
+        // value=cov[0];
+        value="";
+        if (cov[1] == "1")
+           value2 += "<a style='color:red;' title='重要1'>！</a>\n";
+        if (cov[1] == "2")
+           value2 += "<a style='color:red;' title='重要2'>!!</a>\n";
+        if(cov[2]=="1")
+        {
+            value+="$";
+            value2 += "超时\n";
+        }       
+        value+=cov[3].split(':')[1];
+        
+        if(cov[4]=="1")
+        {
+            value+=">";
+            value2 += "大超时\n";
+        }
+        if(cov[4]=="2")
+        {
+            value+="&lt";
+            value2 += "小超时\n";
+        }
+        
+        if(cov[5]=="1")
+        {
+            value+="J";
+            value2 += "基本号\n";
+        }
+        if(cov[5]=="2")
+        {
+            value+="F";
+            value2 += "非基本号\n";
+        }
+        if(cov[6]=="1")
+        {
+            value+="+";
+            value2 += "处理好\n";
+        }
+        if(cov[6]=="2")
+        {
+            value+="-";
+            value2 += "处理坏\n";
+        }
+        if(cov[7]=="2")
+        {
+            value+="Y";
+            value2 += "用语坏\n";
+        }
+        
+        if(cov[8]=="1")
+        {
+            value+="X";
+            value2+="有差错\n";
+        }
+        if (type == "en")
+            return value;
+        return value2;
+        }
+
+   $.each($(".l10"),function(){
+       var result = $(this).html();
+       $(this).html(covertResult(result,"zh"));
+       $(this).attr('title',covertResult(result,"en"));
+   });
+  $("*").keyup(function(e){
+        if ( e.keyCode == 27 )
+           $("#message").css("display","none");
+     })
+</script>
+</body>
+</html>

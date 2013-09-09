@@ -1,0 +1,302 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+     
+    <title>备份录音文件播放</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=gbk"/> 
+</script>
+<style type="text/css">
+    th{
+        background-color:#EFEFEF;
+        border-right:1px solid #FFF;
+        border-bottom:1px solid #FFF;
+    }
+    td,th{
+        text-align:center;
+        
+    } 
+    table tbody tr{
+        background-color:#FeFeFe;
+    }
+    
+    table tbody tr td ul li{
+        margin-top:10px;
+    }
+    table tbody tr td ul li label:hover{
+        background-color:#EFB355;
+        color:#FFF;
+    }
+    table tbody tr td ul li >span{
+        display:inline-block;
+        width:250px;
+    }
+    table tbody tr td ul li >label{
+        display:inline-block;
+        width:50px;
+        text-align:center;
+        cursor:pointer;
+        background-color:#EFEFEF;
+        margin-left:60px;
+        border-radius:4px 4px 4px 4px;
+        color:#333;
+        font-weight:700;
+    }
+
+    table tbody tr td{
+      border-bottom:1px dotted #333;
+  }
+  table{
+    margin:10px 0 0 30px;
+}
+.out-player{
+    display:block
+    margin:20px 0 0 30px;
+    position:absolute; 
+    overflow:hidden;
+    width:100px;
+    border:1px solid #ccc;
+    margin:28px;
+}
+.out-player select{
+    margin:-2px;
+    margin-right:-40px;
+    width:150px;
+}
+.flodspan{
+    display:inline-block;
+    width:5px;
+    height:5px;
+    border-bottom:1px solid #111;
+    border-right:1px solid #111;
+    -moz-transform: rotate(45deg);
+    margin-bottom:-7px;
+}
+.fold{
+    display:inline-block;
+    width:12px;
+    height:12px;
+    border:1px solid #111;
+    border-radius:7px 7px 7px 7px;
+    cursor:pointer;
+    margin-bottom:-20px;
+}
+.fold_{
+    display:inline-block;
+    width:12px;
+    height:12px;
+    border:1px solid #111;
+    border-radius:7px 7px 7px 7px;
+    cursor:pointer;
+    margin-bottom:-20px;
+    -moz-transform:rotate(180deg);
+}
+</style>
+</head>
+<body>
+<input id="wavpath" type="hidden" value="${wavpath}">
+ <div id="player" ></div>
+<!--
+<span class="out-player">
+<select onchange="setplayer()">
+    <option value="-1">设置<option>
+    <option value="1">顺序播放<option>
+    <option value="2">单个播放<option>
+    <option value="3">循环播放<option>
+</select>
+</span>
+-->
+ <table cellspacing="0" cellpadding="0" id="table" border="0">
+  <thead>
+      <tr id="header" >
+          <th>操作员</th> <th>主叫号码</th> <th>被叫号码</th> <th>开始时间</th> <th>结束时间</th>
+          <th colspan="2">评估结果</th>
+      </tr>
+     <tr>
+         <th style="width:100px;background:#FFF;">&nbsp;</th> <th style="width:150px;background:#FFF;">&nbsp;</th> 
+         <th style="width:150px;background:#FFF;">&nbsp;</th> <th style="width:170px;background:#FFF;">&nbsp;</th> 
+         <th style="width:170px;background:#FFF;height:1px;">&nbsp;</th>
+         <th style="width:197px;background:#FFF;" colspan="2">&nbsp;</th>
+      </tr> 
+      
+  </thead>
+  <tbody>
+       ${DATA_INSERT}
+   <!-- test data.
+   <tr>
+       <td >dop</td> <td>123456</td> <td>654321</td> <td>2012-10-10 12:44:20</td><td>2012-10-10 13:44:20</td> 
+       <td>$00>J+</td> <td class="fold" onclick="flodnext(this)" title="展开"><span class="flodspan"></span> </td>
+
+   </tr>
+   <tr>
+       <td width="100px;">&nbsp;</td><td colspan="6" style="text-align:left;">
+        <ul>
+            <li ><span>2012-10-11 22:22:22.wav</span> <label  onclick="playbackup('1.wav',this)">播放</label>
+                <label onclick="playbackup('',this)">停止</label></li>
+                <li ><span>2012-10-11 22:26:22.wav</span> <label  onclick="playbackup('2.wav',this)">播放</label>
+                <label onclick="playbackup('',this)">停止</label></li>
+                <li ><span>2012-10-11 22:29:22.wav</span> <label  onclick="playbackup('3.wav',this)">播放</label>
+                <label onclick="playbackup('',this)">停止</label></li>
+
+        </ul>
+       
+       </td>
+    </tr>
+ -->
+</tbody>
+</table>
+</body>
+<script type="text/javascript">
+// globle variable value.
+var player = self.parent.document.getElementById("Player"); 
+var isparent = true;
+function settable(){
+       var table =   document.getElementById("table");
+       var rows = table.rows;
+        for (var i = 3; i < rows.length;i+=2){
+           rows[i].style.display="none";
+        }
+}
+function flodnext(el){
+ var nextrowstatu =   document.getElementById("table").rows[el.parentElement.rowIndex+1].style.display;
+ if(nextrowstatu == 'none'){
+     el.setAttribute("class","fold_");
+     el.setAttribute("title","收起");
+     document.getElementById("table").rows[el.parentElement.rowIndex+1].style.display ="table-row";
+ }else{
+     document.getElementById("table").rows[el.parentElement.rowIndex+1].style.display ="none";
+     el.setAttribute("class","fold");
+     el.setAttribute("title","展开");
+  }
+}
+/**
+ *play backup wav file
+ */
+function playbackup(url,elem){
+          var labels = document.getElementsByTagName("label");
+            for ( var i = 0; i<labels.length;i++){
+                labels[i].style.background="#EFEFEF";
+                labels[i].style.color="#333";
+            }
+          elem.style.background="#EFB355";
+          elem.style.color="#FFF";
+          if (url == '')
+          {
+    	    var labels = document.getElementsByTagName("label");
+            for ( var i = 0; i<labels.length;i++){
+                labels[i].style.background="#EFEFEF";
+                labels[i].style.color="#333";
+            }
+          }
+         
+          if (url == ''){
+              player.controls.stop();
+            reutrn;
+          }
+          if (isparent)
+             url = document.getElementById("wavpath").value+"\\"+url;
+          player.URL=url;
+          player.paly();
+      }  
+window.onload= function(){
+    settable();
+    if (!self.parent.document.getElementById("Player")){
+        player = Player();
+        isparent = false;
+    }else{ // hide thead when included.
+        document.getElementById("header").style.display="none";
+    }
+  var results = document.getElementsByName("result");
+     for (var i = 0; i<results.length; i++){
+     
+       if (results[i].innerHTML.split(",").length == 8)
+         results[i].innerHTML = covertResult(results[i].innerHTML);
+     }   
+   /* var wavs =   document.getElementsByTagName("li");
+     for ( var i = 0; i<wavs.length;i++){
+         var wav_each =  wavs[i].getElementsByTagName("span")[0].innerHTML;
+         Player(wav_each);
+     }
+  */    
+  }
+ function Player() {
+	var vhtml = '<object id="Player"';
+	var userAg = navigator.userAgent;
+	if (-1 != userAg.indexOf("MSIE")) {
+		vhtml += ' classid="clsid:6BF52A52-394A-11d3-B153-00C04F79FAA6"';
+	} else if (-1 != userAg.indexOf("Firefox")
+			|| -1 != userAg.indexOf("Chrome") || -1 != userAg.indexOf("Opera")
+			|| -1 != userAg.indexOf("Safari")) {
+		//vhtml += ' type="application/x-mplayer2"';
+		vhtml += ' type="application/x-ms-wmp"';
+
+	}
+    vhtml += ' width="100%" height="64">';
+	//下面这些播放器的参数自己配置吧
+	vhtml += '<param name="autoStart" value="true" />';
+	vhtml += '<param name="invokeURLs" value="true">';
+	vhtml += '<param name="playCount" value="1">';
+	vhtml += '<param name="Volume" value="100">';
+	vhtml += '<param name="loop" value="false">';
+	vhtml += '<param name="defaultFrame" value="datawindow">';
+	vhtml += '</object>';
+	document.getElementById("player").innerHTML = vhtml;
+    //document.getElementById("Player").settings.requestMediaAccessRights("full");
+    return document.getElementById("Player");
+}
+function covertResult(value)
+{
+    //value="000,"+value
+    //      *   nnn:   $      n     <>:      J:       F:    +-:       Y:    X
+    //  opeartorName,answer,checktime,checknumber,numbertype,dealproblem,serviceterms,isbad
+    //dop,1,00:00:00,1,1,1,1,0 
+        var cov=value.split(',');
+        //value=cov[0];
+        value="";
+        if(cov[1]=="1")
+        {
+            value+="$";
+        }       
+        value+=cov[2].split(':')[1];
+        
+        if(cov[3]=="1")
+        {
+            value+=">";
+        }
+        if(cov[3]=="2")
+        {
+            value+="&lt";
+        }
+        
+        if(cov[4]=="1")
+        {
+            value+="J";
+        }
+        if(cov[4]=="2")
+        {
+            value+="F";
+        }
+        if(cov[5]=="1")
+        {
+            value+="+";
+        }
+        if(cov[5]=="2")
+        {
+            value+="-";
+        }
+        if(cov[6]=="2")
+        {
+            value+="Y";
+        }
+        
+        if(cov[7]=="1")
+        {
+            value+="X";
+        }
+           
+            return value;
+    }
+
+</script>
+</html>
+
+

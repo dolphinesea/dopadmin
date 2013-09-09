@@ -1,0 +1,41 @@
+.search{
+	list-style-type:none;
+	display:inline-block;
+	width:70%;
+	//border:1px solid red;
+}
+.search li{
+	margin-top:10px;
+}
+.search li>label{
+	display: inline-block;
+	width:100px;
+	text-align: right;
+	letter-spacing:0.2em;
+	
+}
+.search li>label>first{
+	margin-right:19px;
+}
+ul input[type=text]{
+	width:200px;
+	height:32px
+}
+.search-button{
+	display:inline-block;
+	//border:1px solid red;
+	width:120px;
+
+}
+
+
+input[type=submit]{
+	 	width:50px;
+	 	height:50px;
+	 	margin-bottom:10px;
+}
+#form{
+	display:block;
+	//border-bottom:1px solid #FB9500;
+	margin-bottom:14px;
+}
